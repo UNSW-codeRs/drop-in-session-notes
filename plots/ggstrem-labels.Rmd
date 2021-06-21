@@ -1,0 +1,68 @@
+---
+title: "How to customise a `pvclust` plot"
+author: JR Ferrer-Paris (https://github.com/jrfep)
+date: 2021-06-21
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+geom_stream_labels
+
+Check this post: https://r-charts.com/evolution/ggstream/
+
+Package documentation: https://rdrr.io/github/davidsjoberg/ggstream/man/geom_stream.html
+## Required packages
+
+```{r}
+# install.packages(c("pvclust", "dendextend"))
+require(dplyr)
+require(pvclust)
+require(dendextend)
+```
+
+## Reproducible data
+
+Load existing dataset and run the `pvclust` function:
+```{r}
+data(lung)
+set.seed(1234)
+result <- pvclust(lung[1:100, 1:10], method.dist="cor",
+                  method.hclust="average", nboot=10)
+```
+
+We will also need a vector for the colors, for example:
+
+```{r}
+color_values <- rep(c("wheat", "peru","brown"),c(4,3,3))
+```
+
+Check the default plot of the result
+
+```{r}
+plot(result)
+pvrect(result)
+```
+
+## Solution
+
+Customised plot :
+
+```{r}
+result %>% as.dendrogram %>%
+  set("branches_k_color", k = 2, value = c("slateblue4", "maroon")) %>%
+  set("labels_colors", value = color_values ) %>%
+  plot
+result %>% text
+result %>% pvrect
+```
+
+
+## Debugging info
+
+Check the R session info:
+
+```{r}
+sessionInfo()
+```

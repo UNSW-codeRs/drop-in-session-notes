@@ -1,0 +1,60 @@
+---
+title: "How to plot points in a map from _ozmaps_"
+author: "JR Ferrer-Paris (https://github.com/jrfep)"
+date: 2021-06-21
+output:
+  pdf_document: default
+  html_document: default
+---
+
+Package `ozmaps` can be used to load simple mapdata for Australia.
+
+Check package documentation at: https://www.rdocumentation.org/packages/ozmaps/versions/0.4.0
+
+## Required packages
+
+```{r}
+# install.packages(c("ozmaps"))
+require(ozmaps)
+require(ggplot2)
+require(dplyr)
+
+```
+
+## Reproducible data
+
+Extract map data for a single state from the `ozmap_states` data:
+
+```{r}
+ozmap_states %>% filter(NAME=='Queensland') -> Queensland_map
+```
+
+Create a tibble with the point data (coordinates must be in the same geographic projection as the map)
+
+```{r}
+locations <- tibble(lon=c(144,145,147,140),
+                    lat=c(-18,-22,-27,-23),
+                    var1=c(700,100,1000,500),
+                    var2=factor(c(1,1,2,3)))
+```
+
+## Solution
+
+Very simple map with outline and data points:
+
+```{r}
+ggplot() +
+  geom_sf(data = Queensland_map, show.legend = FALSE) +
+  coord_sf() +
+  geom_point(data=locations,aes(x=lon,y=lat,size=var1,color=var2))
+```
+
+Solution adapted from: https://ggplot2-book.org/maps.html
+
+## Debugging info
+
+Check the R session info:
+
+```{r}
+sessionInfo()
+```
