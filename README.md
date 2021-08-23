@@ -5,11 +5,9 @@ In this repository I am adding some answers and notes for questions from colleag
 Each note is written as a R-markdown document with a minimal reproducible example and a knitr PDF version that includes the R-session information useful for debugging purposes.
 
 * Clusters
-  * [pvclust](/clusters/pvclust-dendrogram-plot.Rmd)
+  * [pvclust](clusters/pvclust-dendrogram-plot.Rmd)
 * Plots
-  * [geom_stream](plots/ggstream_labels.Rmd)
-  * [ggplot of glm with interactions](plots/ggplot-glm-interactions.Rmd)
+  * [geom_stream](ggplots/ggstream_labels.Rmd)
+  * [ggplot of glm with interactions](ggplots/ggplot-glm-interactions.Rmd)
 * Maps
   * [OZ-maps](maps/ozmaps-with-points.Rmd)
-* LaTeX
-  * [LaTeX output of table](/latex/Example.Rnw)

@@ -3,11 +3,22 @@ title: "Customise a ggplot for a dataset with interactions between variables"
 author: JR Ferrer-Paris (https://github.com/jrfep)
 date: 2021-06-21
 output:
-  pdf_document: default
+  pdf_document: 
+    fig_width: 4
+    fig_height: 3
   html_document: default
 ---
 
 I was given a dataset and a glm model with interactions, and the user wants to show several interactions in a single plot
+
+## Libraries
+
+First load the libraries
+
+```{r}
+require(ggplot2)
+require(ggnewscale)
+```
 
 ## Dataset
 
@@ -37,40 +48,40 @@ We have four variables that we want to display, three are continuous, one catego
 
 Size and shape:
 
-```{r model}
+```{r plot-size-shape}
 ggplot(data=obs.data) +
   geom_point(aes(x=log.area,y=n.species, size=rain.diff, shape=blocks))
 ```
 
 Colour and shape:
-```{r model}
+```{r plot-colour-shape}
 ggplot(data=obs.data) +
   geom_point(aes(x=log.area,y=n.species, colour=rain.diff, shape=blocks))
 ```
 
 Or better size and colour and shape:
-```{r model}
+```{r plot-size-colour-shape}
 ggplot(data=obs.data) +
   geom_point(aes(x=log.area,y=n.species, colour=rain.diff, size=rain.diff,shape=blocks))
 ```
 
 That is not so bad, but we want to improve on this, you can save the plot and add elements to it:
-```{r model}
+```{r add-points}
 
-plot_with4vars <- ggplot(data=obs.data) +
-  geom_point(aes(x=log.area,y=n.species, colour=rain.diff, size=rain.diff,shape=blocks))
+(plot_with4vars <- ggplot(data=obs.data) +
+  geom_point(aes(x=log.area,y=n.species, colour=rain.diff, size=rain.diff,shape=blocks)))
 
 ```
 
 The previous plot is still too cluttered, we can divide it in facets:
 
-```{r model}
+```{r add-facet}
 plot_with4vars + facet_grid(blocks~.)
 ```
 
 This is more readable, but we want to join the legends of size and colour, and maybe we don't need the legend for blocks, since we already have them in different panels:
 
-```{r model}
+```{r unify-legends}
 range(obs.data$rain.diff)
 var3.limits <- c(-300,450)
 var3.breaks <- seq(-300,450,by=150)
@@ -86,7 +97,7 @@ We further split the plot by the sign of the difference in rainfall, left size a
 
 To do this we need to add a new variable to the data set and we better repeat the call to the original plot (otherwise we will get warnings and errors for missing faceting variables)
 
-```{r model}
+```{r split-by-sign}
 obs.data$rain.sign <- sign(obs.data$rain.diff)
 
 plot_with4vars <- ggplot(data=obs.data) +
@@ -101,7 +112,7 @@ guides(size=guide_legend(), colour=guide_legend(), shape='none')
 
 Now we want to add the results of the model. We create a new data frame with new observations. We will use expand grid to create sequence of values along the range log.area and all levels of the blocks variables, but using only two quantiles of the rain.diff variable:
 
-```{r model}
+```{r prediction-grid}
 pred.data <- expand.grid(log.area=seq(min(obs.data$log.area), max(obs.data$log.area), length=20), rain.diff=quantile(obs.data$rain.diff,c(.25,.75)), blocks=levels(obs.data$blocks))
 
 pred.data$rain.sign <- factor(sign(pred.data$rain.diff))
@@ -109,7 +120,7 @@ pred.data$rain.sign <- factor(sign(pred.data$rain.diff))
 
 We will add the predictions to this object. First predict the expected values and standard errors in the scale of the link function. Then, assuming assymptotic normality, we calculate the lower and upper intervals. Finally, we use the inverse link function to transform these values to the scale of the response variable.
 
-```{r model}
+```{r prediction}
 prd <- predict(mdl,newdata=pred.data,type='link',se.fit=T)
 ilink <- family(mdl)$linkinv
 
@@ -121,7 +132,7 @@ pred.data$pred.upper <- ilink(prd$fit+1.96*prd$se.fit)
 
 
 Now we can add the lines and a ribbon with the confidence intervals
-```{r model}
+```{r add-lines}
 plot_observed_data <- plot_with4vars + facet_grid(blocks~rain.sign) +
 scale_size_continuous(limits=var3.limits, breaks=var3.breaks) +
 scale_colour_continuous(limits=var3.limits, breaks=var3.breaks) +
@@ -137,7 +148,7 @@ Well that looks... awful!
 
 We have very large confidence intervals (I warned you, the model is not optimal). We need to limit our y-axis to the range of the observed values:
 
-```{r model}
+```{r set-ylim}
 plot_obs_and_pred_data <- plot_observed_data +
   geom_ribbon(data=pred.data, aes(x=log.area, ymin = pred.lower, ymax = pred.upper), alpha = 0.2, color = NA) +
       geom_line(data=pred.data,aes(x=log.area,y=prediction) )
@@ -147,9 +158,9 @@ plot_obs_and_pred_data + coord_cartesian(ylim = range(obs.data$n.species))
 
 Well that looks better. It shows the estimated trend and the uncertainty of the model (very important!).
 
-Maybe we can make this look even nicer with different colors of the predictions for negative and positive values of rain.diff:
+Maybe we can make this look even nicer with different colours of the predictions for negative and positive values of rain.diff:
 
-```{r model}
+```{r colour-sign, error=TRUE, plot=FALSE}
 
 plot_observed_data +
   geom_ribbon(data=pred.data, aes(x=log.area, ymin = pred.lower, ymax = pred.upper, fill=rain.sign), alpha = 0.2, color = NA) +
@@ -161,7 +172,7 @@ Upps! that throws an error. We are mixing two different colour scales, one for t
 We can try to fix it declaring a new scale `new_scale_color`
 
 
-```{r model}
+```{r mix-colours}
 
 plot_observed_data + new_scale_color() +
   geom_ribbon(data=pred.data, aes(x=log.area, ymin = pred.lower, ymax = pred.upper, fill=rain.sign), alpha = 0.2, color = NA) +
@@ -172,7 +183,7 @@ That looks... confusing!?. The plot is not that bad, but the legends are a mess.
 
 Let's get back to the beginning and simplify the observed point data first. Shapes are redundant with the facets, and colour and size are also redundant:
 
-```{r model}
+```{r simplify-plot}
 plot_with4vars <- ggplot(data=obs.data) +
   geom_point(aes(x=log.area,y=n.species, size=rain.diff)) + facet_grid(blocks~rain.sign)
 
@@ -184,7 +195,7 @@ scale_size_continuous(limits=var3.limits, breaks=var3.breaks) )
 We can now add the lines and ribbons without conflict with previous colour scales
 
 
-```{r model}
+```{r simple-lines-points}
 (plot_obs_and_pred_data <-
   plot_observed_data +
     geom_ribbon(data=pred.data, aes(x=log.area, ymin = pred.lower, ymax = pred.upper, fill=rain.sign), alpha = 0.2, color = NA) +
@@ -193,7 +204,7 @@ We can now add the lines and ribbons without conflict with previous colour scale
 
 This looks good, but we suddently realize the scale in the x axes is a logarithm of area, but we want to show the real value of area (in hectars). Should we go back and fix the data and model and run all the code again?... or maybe we just need to add one line of code to fix the plot:
 
-```{r model}
+```{r log-scale}
 plot_obs_and_pred_data + scale_x_continuous( breaks=seq(0,4), labels=c(1,10,100,1000,10000))
 ```
 
@@ -204,7 +215,7 @@ Now the plot looks good enough, all the information we want is in there, and we 
 
 As a final step we can fix the legends and labels to make them more informative, notice the use of several functions to add or overwrite labels:
 
-```{r model}
+```{r final}
 plot_obs_and_pred_data +
   facet_grid(blocks~rain.sign, labeller = labeller(rain.sign = c(`-1`='Negative rainfall diff.',`1`='Positive rainfall diff.'))) +
   scale_x_continuous( breaks=seq(0,4), labels=c(1,10,100,1000,10000))  +
