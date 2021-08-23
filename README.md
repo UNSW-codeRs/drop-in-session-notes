@@ -7,7 +7,7 @@ Each note is written as a R-markdown document with a minimal reproducible exampl
 * Clusters
   * [pvclust](clusters/pvclust-dendrogram-plot.Rmd)
 * Plots
-  * [geom_stream](ggplots/ggstream_labels.Rmd)
+  * [geom_stream](ggplots/ggstream-labels.Rmd)
   * [ggplot of glm with interactions](ggplots/ggplot-glm-interactions.Rmd)
 * Maps
   * [OZ-maps](maps/ozmaps-with-points.Rmd)
